@@ -23,6 +23,7 @@ RETRY_BACKOFF_SECONDS = 2
 DEFAULT_CACHE_NAMESPACE = "default"
 TOTAL_QUERY_COUNT = 0
 TOTAL_CACHE_HIT_COUNT = 0
+FAILED_QUERY_COUNT = 0  # queries that still failed after MAX_RETRIES attempts
 PRINT_EVERY_N_QUERIES = 500
 
 
@@ -154,6 +155,8 @@ async def async_query(client, sem, model_name, prompt: Union[str, Dict[str, Any]
 
         return out if out is not None else "N/A"
 
+    global FAILED_QUERY_COUNT
+    FAILED_QUERY_COUNT += 1
     return "N/A"
 
 

@@ -9,6 +9,7 @@ import datetime
 import json
 from config import Config
 import sys
+import util
 from datasets import load_dataset
 
 
@@ -16,7 +17,13 @@ async def load_process_csv_data_custom_responses(
     client, judge_model_name, response_model_name, kwargs,
     config: Config
 ):
-    df = load_dataset("ScaleAI/PRBench", split=config.split_name).to_pandas()
+    df = load_dataset("ScaleAI/PRBench", split=config.split_name, revision=config.dataset_revision).to_pandas()
+    if config.task_ids_path:
+        prefix = f"{config.split_name}-"
+        wanted = {line.strip()[len(prefix):] for line in open(config.task_ids_path) if line.startswith(prefix)}
+        missing = wanted - set(df["task"])
+        assert wanted and not missing, f"task ids not in split {config.split_name}: {sorted(missing)[:5]}"
+        df = df[df["task"].isin(wanted)].reset_index(drop=True)
     if config.debug:
         df = df[10:12]
 
@@ -126,6 +133,9 @@ async def run_evals_off_platform(config: Config):
                 outputs_dict[o["id"]] = o
             results["outputs"][response_model_name] = outputs_dict
 
+    # A failed judge call counts as "not met"; report how many there were.
+    results["failed_query_count"] = util.FAILED_QUERY_COUNT
+
     # Save config along with results
     results["config"] = config.to_dict()
     
@@ -145,6 +155,9 @@ async def run_evals_off_platform(config: Config):
     print(f"\nResults saved to: {output_filename}")
     print("Mean (normalized): ", results["mean_normalized"])
     print("Mean (clipped): ", results["mean_clipped"])
+    if util.FAILED_QUERY_COUNT:
+        print(f"{util.FAILED_QUERY_COUNT} judge queries failed after {util.MAX_RETRIES} attempts; rerun before using the scores")
+        sys.exit(1)
 
 if __name__ == "__main__":
     config_path = sys.argv[1] if len(sys.argv) > 1 else "config.yaml"

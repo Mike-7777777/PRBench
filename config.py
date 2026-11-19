@@ -1,3 +1,4 @@
+import os
 import yaml
 from typing import List, Dict, Optional
 from dataclasses import dataclass, field
@@ -21,11 +22,15 @@ class Config:
     previous_output_json: str = None
     cache: bool = False
     response_api: str = "responses" # "responses" or "chat.completions"
+    dataset_revision: Optional[str] = None  # Hugging Face revision of ScaleAI/PRBench
+    task_ids_path: Optional[str] = None  # file of <split_name>-<task> lines; other splits' lines are ignored
     response_model_names: List[str] = field(default_factory=list)
     reasoning_effort_by_model: Dict[str, str] = field(default_factory=dict)
     thinking_budget_by_model: Dict[str, int] = field(default_factory=dict)
     
     def get_litellm_key(self) -> str:
+        if not self.litellm_key_path:
+            return os.environ["OPENAI_API_KEY"]
         with open(self.litellm_key_path, 'r') as f:
             return f.read().strip()
     
@@ -71,6 +76,10 @@ class Config:
             'split_name': self.split_name,
             'previous_output_json': self.previous_output_json,
             'cache': self.cache,
+            'dataset_revision': self.dataset_revision,
+            'task_ids_path': self.task_ids_path,
+            'trial_number': self.trial_number,
+            'final_response_source': self.final_response_source,
         }
     
     def to_yaml(self, yaml_path: str) -> None:
