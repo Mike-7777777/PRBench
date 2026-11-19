@@ -318,15 +318,29 @@ def economic_pathway_to_json(response):
 def process_reference_texts(row):
     for col in row.keys():
         if "reference" in col:
-            if isinstance(row[col], list):
-                print(f"Processing reference texts for task: {row['task']} in column: {col}, count: {len(row[col])}")
-                reference_texts = row[col]
-                col_num = col.split("_")[-1]
+            # to_pandas() gives a NumPy array here, not a list; turns without a prompt hold an empty one.
+            reference_texts = row[col]
+            col_num = col.split("_")[-1]
+            prompt = row.get(f"prompt_{col_num}")
+            if reference_texts is not None and len(reference_texts) > 0 and isinstance(prompt, str):
+                print(f"Processing reference texts for task: {row['task']} in column: {col}, count: {len(reference_texts)}")
                 reference_text_body = ""
                 for i in range(len(reference_texts)):
                     reference_text_body += f"Reference Text {i}:\n{reference_texts[i]}\n\n"
-                row[f"prompt_{col_num}"] = reference_text_body + row[f"prompt_{col_num}"]
+                row[f"prompt_{col_num}"] = reference_text_body + prompt
     return row
+
+
+def process_row_get_convo(row):
+    convo = []
+    for i in range(10):
+        prompt_col = f"prompt_{i}"
+        if prompt_col in row and type(row[prompt_col]) == str and len(row[prompt_col].strip()) > 0:
+            convo.append(("user", row[prompt_col]))
+        response_col = f"response_{i}"
+        if response_col in row and type(row[response_col]) == str and len(row[response_col].strip()) > 0:
+            convo.append(("assistant", row[response_col]))
+    return convo
 
 def remove_thinking_tags(text: str) -> str:
     text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL | re.IGNORECASE)

@@ -30,17 +30,6 @@ async def load_process_csv_data_custom_responses(
 
     sem = asyncio.Semaphore(64)
 
-    def process_row_get_convo(row):
-        convo = []
-        for i in range(10):
-            prompt_col = f"prompt_{i}"
-            if prompt_col in row and type(row[prompt_col]) == str and len(row[prompt_col].strip()) > 0:
-                convo.append(("user", row[prompt_col]))
-            response_col = f"response_{i}"
-            if response_col in row and type(row[response_col]) == str and len(row[response_col].strip()) > 0:
-                convo.append(("assistant", row[response_col]))
-        return convo
-
     convos = df.apply(process_row_get_convo, axis=1).tolist() # list of tuples
 
     # Retrieve final responses
