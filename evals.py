@@ -116,7 +116,8 @@ async def run_evals_off_platform(config: Config):
                 client,
                 config.judge_model_name,
                 response_model_name,
-                kwargs=kwargs_for(response_model_name, config),
+                # Prefilled replies are not sampled, so the response model needs no sampling arguments.
+                kwargs={} if config.final_response_source == "prefilled" else kwargs_for(response_model_name, config),
                 config=config
             )
 
