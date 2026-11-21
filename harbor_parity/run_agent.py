@@ -42,7 +42,6 @@ INSTRUCTION = (HERE / "instruction.md").read_text()
 # installed the way Harbor's claude-code agent installs it.
 DOCKERFILE = """FROM python:3.11-slim
 WORKDIR /workspace
-RUN pip install --no-cache-dir openai==3.49.0
 RUN apt-get update && apt-get install -y --no-install-recommends \\
         curl bash ca-certificates nodejs npm procps \\
     && rm -rf /var/lib/apt/lists/*
@@ -52,6 +51,14 @@ RUN curl -fsSL https://downloads.claude.ai/claude-code-releases/bootstrap.sh \\
     && /root/.local/bin/claude --version
 ENV PATH="/root/.local/bin:${PATH}"
 """
+
+MODEL_ALIAS_ENV = (
+    "ANTHROPIC_DEFAULT_SONNET_MODEL",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL",
+    "ANTHROPIC_DEFAULT_FABLE_MODEL",
+    "CLAUDE_CODE_SUBAGENT_MODEL",
+)
 
 RUN_SCRIPT = (
     "mkdir -p $CLAUDE_CONFIG_DIR/debug $CLAUDE_CONFIG_DIR/projects/-app "
@@ -133,6 +140,10 @@ class ClaudeCodeRunner:
         for name in ("ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL"):
             if os.environ.get(name):
                 env[name] = os.environ[name]
+        if "ANTHROPIC_BASE_URL" in env:
+            # On a custom endpoint Harbor points every model tier and the subagents at the run's model.
+            for name in MODEL_ALIAS_ENV:
+                env[name] = os.environ.get(name) or self.model
         command = ["docker", "run", "--rm", "--cpus", "1", "--memory", "2g"]
         command += ["-v", f"{workspace.resolve()}:/workspace", "-v", f"{logs.resolve()}:/logs/agent"]
         for name in env:
