@@ -1,5 +1,16 @@
 # PRBench: Professional Reasoning Benchmark
 
+> **This fork (`harbor-parity` branch)** holds the original-benchmark side of the parity runs of the Harbor PRBench adapter ([harbor-framework/adapters#83](https://github.com/harbor-framework/adapters/pull/83)). The reported runs used commit [`e7b4453`](https://github.com/Mike-7777777/PRBench/tree/e7b4453a1e4bb543f8726efced94355087cea6fc). [`HARBOR_PARITY.md`](HARBOR_PARITY.md) lists every change to the upstream code (scoring is unchanged) and the commands that reproduce the runs:
+>
+> ```bash
+> pip install -r requirements.txt
+> export ANTHROPIC_API_KEY=... CLAUDE_CODE_VERSION=2.1.322   # agent endpoint; ANTHROPIC_BASE_URL if not Anthropic's
+> python harbor_parity/run_agent.py --model claude-haiku-5-5 --trial 1 --out harbor_runs/run1 --judge_model gpt-5.6-terra --num_threads 12
+> export OPENAI_API_KEY=... OPENAI_BASE_URL=...              # judge endpoint
+> python evals.py harbor_runs/run1/config_finance.yaml
+> python evals.py harbor_runs/run1/config_legal.yaml
+> ```
+
 > A lightweight evaluation harness for PRBench, a large-scale expert-annotated benchmark for high-stakes reasoning in professional domains. Current version covers Legal and Finance domains.
 
 This repository provides the code necessary to run rubric-based evaluations using the PRBench dataset and pipeline. The main entry point is evals.py, which conducts model response generation, automated scoring via an LLM-judge, caching, retries, and reporting.

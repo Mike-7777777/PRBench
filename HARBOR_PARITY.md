@@ -40,7 +40,7 @@ python evals.py harbor_runs/run1/config_finance.yaml
 python evals.py harbor_runs/run1/config_legal.yaml
 ```
 
-`--judge_model` (default `gpt-4.1`, the adapter's default) and `--judge_base_url`
+`--judge_model` (default `gpt-4.1`; the reported runs used `gpt-5.6-terra`, the adapter's default) and `--judge_base_url`
 (default `$OPENAI_BASE_URL`) go into the two generated configs. Use a new
 `--trial` for every run: the judge cache is keyed by `trial_number`.
 
@@ -59,9 +59,10 @@ paper.
 
 ## Runs reported in the adapter
 
-Runs 1 and 2 (2026-11-21): Claude Code 2.1.322 (`CLAUDE_CODE_VERSION=2.1.322`),
+Runs 1 and 2 (2026-11-21), at commit `e7b4453` of this branch (later commits change only this
+file and the README): Claude Code 2.1.322 (`CLAUDE_CODE_VERSION=2.1.322`),
 `--model claude-haiku-5-5`, `--judge_model gpt-5.6-terra`, `--num_threads 12`,
 `--trial 1` and `--trial 2`, on `parity_task_ids.txt`. The Harbor side ran the
-same agent, model and judge (`src/prbench/prbench_parity.yaml` with
+same agent, model and judge on Harbor 0.26.0 (`src/prbench/prbench_parity.yaml` with
 `JUDGE_MODEL=gpt-5.6-terra`). Replies, agent logs and grading results are in the
 Harbor parity-experiments dataset under `adapters/prbench/`.
